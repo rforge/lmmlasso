@@ -43,8 +43,9 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> We would greatly appreciate a feedback from people interested in this package. Please to not hesitate to contact schell@stat.ethz.ch. 
-You find references at  <a href="http://stat.ethz.ch/people/schell"> </p>
+<p> We would greatly appreciate any feedback about this package. Please do not hesitate to contact Juerg via schell@stat.ethz.ch. <p>
+ 
+<p> You find all references <a href="http://stat.ethz.ch/people/schell"> on this website </a>. </p>
 
 <p> The <strong>project summary page</strong> you can find <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
 
