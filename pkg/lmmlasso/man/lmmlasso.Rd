@@ -117,13 +117,13 @@ q <- 2            # number of random effect covariates
 ni <- rep(6,N)    # observations per group
 ntot <- sum(ni)   # total number of observations
 
-grp <- factor(rep(1:N,each=ni)) # grouping variable
+grp <- factor(rep(1:N,times=ni)) # grouping variable
 
 beta <- c(1,2,4,3,0,0,0) # fixed-effects coefficients
 x <- cbind(1,matrix(rnorm(ntot*p),nrow=ntot)) # design matrix
 
-bi1 <- rep(rnorm(N,0,3),each=ni) # Psi=diag(3,2)
-bi2 <- rep(rnorm(N,0,2),each=ni)
+bi1 <- rep(rnorm(N,0,3),times=ni) # Psi=diag(3,2)
+bi2 <- rep(rnorm(N,0,2),times=ni)
 bi <- rbind(bi1,bi2)
    
 z <- x[,1:2,drop=FALSE]
