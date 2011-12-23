@@ -1,0 +1,10 @@
+import(Matrix)
+
+export(glmmlasso)
+
+exportMethods(show,residuals,coefficients,coef,fitted,fitted.values)
+
+S3method(glmmlasso, default)
+S3method(plot, glmmlasso)
+S3method(print, glmmlasso)
+S3method(summary, glmmlasso)
