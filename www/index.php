@@ -43,7 +43,7 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> We would greatly appreciate any feedback about this package. Please do not hesitate to contact Juerg via schell@stat.math.ethz.ch. <p>
+<p> We would greatly appreciate any feedback about the lmmlasso and glmmlasso package. Please do not hesitate to contact the maintainer Lukas via meier@stat.math.ethz.ch. <p>
  
 <p> You find all references <a href="http://stat.ethz.ch/people/schell"> on this website </a>. </p>
 
