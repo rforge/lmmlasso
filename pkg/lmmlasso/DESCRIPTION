@@ -4,7 +4,7 @@ Title:		Linear mixed-effects models with Lasso
 Version:	0.1-2
 Date:		2011-04-13
 Author:		Juerg Schelldorfer
-Maintainer:	Juerg Schelldorfer <schell@stat.math.ethz.ch>
+Maintainer:	Lukas Meier <meier@stat.math.ethz.ch>
 Description:	This package fits (gaussian) linear mixed-effects models
 	      	for high-dimensional data (n<<p) using a Lasso-type
 	       	approach for the fixed-effects parameter.
