@@ -10,14 +10,32 @@ function(object,...)
 
     # 2a. part
     cat("","\n")
-    cat("Random effects:\n")
-    tableVar <- round(c(object$theta^2),5)
-    tableSd <- round(c(object$theta),5)
-    matrixVar <- cbind(tableVar,tableSd)
-    colnames(matrixVar) <- c("Variance","Std.Dev.")
-    if (length(object$ranInd)>1) rownames(matrixVar) <- c("(Intercept)",paste("X",object$ranInd[-1],sep=""))
-    else rownames(matrixVar) <- c("(Intercept)")
-    print(matrixVar)
+    cat("Random effects:\n") 
+    if(object$covStruct == "Sym"){
+      m <- fill.mat(object$theta, object$stot)
+      ##
+      cov  <- tcrossprod(m)
+      sd   <- sqrt(diag(cov)) ## standard deviations
+      corr <- cov2cor(cov)    ## correlation matrix
+      tableCov  <- round(cov,5)
+      tableSd   <- round(sd,5)
+      matrixCorr <- round(corr,5)
+      ##colnames(matrixVar) <- c("Variance","Std.Dev.")
+      cat("\nCovariance Matrix:\n")
+      print(tableCov)
+      cat("\nCorrelation Matrix:\n")
+      print(matrixCorr)
+      cat("\nStandard Deviations:\n")
+      print(tableSd)
+    }else{
+      tableVar <- round(c(object$theta^2),5)
+      tableSd <- round(c(object$theta),5)
+      matrixVar <- cbind(tableVar,tableSd)
+      colnames(matrixVar) <- c("Variance","Std.Dev.")
+      ##if (length(object$ranInd)>1) rownames(matrixVar) <- c("(Intercept)",paste("X",object$ranInd[-1],sep=""))
+      ##else rownames(matrixVar) <- c("(Intercept)")
+      print(matrixVar)
+    }
     
     # 3. part
     cat("","\n")
@@ -62,13 +80,32 @@ function(x,...)
     # 2a. part
     cat("","\n")
     cat("Random effects:\n")
-    tableVar <- round(c(x$theta^2),5)
-    tableSd <- round(c(x$theta),5)
-    matrixVar <- cbind(tableVar,tableSd)
-    colnames(matrixVar) <- c("Variance","Std.Dev.")
-    if (length(x$ranInd)>1) rownames(matrixVar) <- c("(Intercept)",paste("X",x$ranInd[-1],sep=""))
-    else rownames(matrixVar) <- c("(Intercept)")
-    print(matrixVar)
+    if(x$covStruct == "Sym"){
+      m <- fill.mat(x$theta, x$stot)
+      ##
+      cov  <- tcrossprod(m)
+      sd   <- sqrt(diag(cov)) ## standard deviations
+      corr <- cov2cor(cov)    ## correlation matrix
+      tableCov  <- round(cov,5)
+      tableSd   <- round(sd,5)
+      matrixCorr <- round(corr,5)
+      ##colnames(matrixVar) <- c("Variance","Std.Dev.")
+      cat("\nCovariance Matrix:\n")
+      print(tableCov)
+      cat("\nCorrelation Matrix:\n")
+      print(matrixCorr)
+      cat("\nStandard Deviations:\n")
+      print(tableSd)
+    }else{
+      tableVar <- round(c(x$theta^2),5)
+      tableSd <- round(c(x$theta),5)
+      matrixVar <- cbind(tableVar,tableSd)
+      colnames(matrixVar) <- c("Variance","Std.Dev.")
+      if (length(x$ranInd)>1) rownames(matrixVar) <-
+        c("(Intercept)",paste("X",x$ranInd[-1],sep=""))
+      else rownames(matrixVar) <- c("(Intercept)")
+      print(matrixVar)
+    }
     
     # 3. part
     cat("","\n")

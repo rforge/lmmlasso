@@ -1,7 +1,8 @@
 glmmlasso <- function(y,...)
   UseMethod("glmmlasso")
 
-glmmlasso.default <- function(y,group,X,Z=NULL,family=c("binomial","poisson"),covStruct=c("Identity","Diagonal"),lambda,weights=NULL,
+glmmlasso.default <- function(y,group,X,Z=NULL,family=c("binomial","poisson"),covStruct=c("Identity","Diagonal", "Sym"),
+                              lambda,weights=NULL,
                               coefInit=NULL,exactStep=FALSE,exactDeriv=FALSE,random=NULL,unpenalized=1:stot,ranInd=1:stot,
                               control=glmmlassoControl(family=family),...)
 {
@@ -86,7 +87,46 @@ if (control$verbose>=2) control$fctSave <- TRUE
 Wsqrt <- .symDiagonal(n=ntot,x=seq(1,ntot))
 unit <- .symDiagonal(n=q)
 
-LStart <- .symDiagonal(n=q,x=rep.int(1,q))
+if(covStruct == "Sym"){
+  ## Create permutation matrix
+  my.ind <- rep(1:N, each = stot)
+
+  perm.vec <- numeric(N*stot)
+
+  for(k in 1:N){
+    perm.vec[my.ind==k] <- (k-1) + (0:(stot-1)) * N + 1
+  }
+  
+  perm.mat <- as(perm.vec, "pMatrix")
+
+  L.tmp <- Matrix(0, nrow = stot, ncol = stot)
+  diag(L.tmp) <- 1:stot
+  count <- stot
+  for(i in 1:(stot-1)){
+    for(j in (i+1):stot){
+      L.tmp[i,j] <- count+1
+      count <- count + 1
+    }
+  }
+  b.tmp <- bdiag(rep(list(L.tmp), N))
+  s.tmp <- t(perm.mat) %*% b.tmp %*% perm.mat
+  
+  ind.trick <- list(); length(ind.trick) <- max(L.tmp)
+  for(i in 1:max(L.tmp)){
+    ind.trick[[i]] <- which(s.tmp@x == i)
+  }
+  nrpars <- length(ind.trick)
+}
+
+if(covStruct=="Sym"){
+  LStart <- s.tmp
+  diag(LStart) <- 1 ## Variances
+  initVal <- 0.001
+  LStart@x[unlist(ind.trick[(stot+1):nrpars])] <- initVal ## hack
+}else{
+  LStart <- .symDiagonal(n=q,x=rep.int(1,q))
+}
+
 ind <- rep(1:stot,each=N)
 
 # --- Determine or calculate the starting values ---
@@ -114,18 +154,25 @@ if (missing(coefInit))
   if (covStruct=="Identity")
    {
     newtonStart <- thetaOptExactpdIdent(theta=1,data=data,beta=betaStart,u=uStart,
-                        lambda=lambda,weights=weights,fctstart=.Machine$integer.max,penalized=penalized,Wsqrt=Wsqrt,
+                                lambda=lambda,weights=weights,fctstart=.Machine$integer.max,penalized=penalized,Wsqrt=Wsqrt,
 				Xb=XbStart,family=family,Chol=CholStart,control=control)
+    
     thetaStart <- newtonStart$theta
-   } else if (covStruct=="Diagonal")
+   } else if (covStruct=="Diagonal") ## Use Diagonal matrix also in the symmetric case...
   {
     newtonStart <- thetaOptExactpdDiag(theta=rep(1,stot),data=data,beta=betaStart,u=uStart,
-                        lambda=lambda,weights=weights,penalized=penalized,Wsqrt=Wsqrt,
-			Xb=XbStart,L=LStart,stot=stot,control=control,ind=ind,N=N,family=family,Chol=CholStart)
+                                       lambda=lambda,weights=weights,penalized=penalized,Wsqrt=Wsqrt,
+                                       Xb=XbStart,L=LStart,stot=stot,control=control,ind=ind,N=N,family=family,Chol=CholStart)
+    thetaStart <- newtonStart$theta
+    LStart <- newtonStart$L
+  }else if(covStruct == "Sym"){
+    newtonStart <- thetaOptExactpdSym(theta=c(rep(1,stot), rep(initVal, nrpars-stot)),data=data,beta=betaStart,u=uStart,
+                                      lambda=lambda,weights=weights,penalized=penalized,Wsqrt=Wsqrt,
+                                      Xb=XbStart,L=LStart,stot=stot,control=control,ind=ind.trick,N=N,family=family,Chol=CholStart)
     thetaStart <- newtonStart$theta
     LStart <- newtonStart$L
   }
-  
+
   # ... for the advised random effects
   pirlsStart <- pirls(u=uStart,data=data,beta=betaStart,Wsqrt=Wsqrt,Xb=XbStart,theta=thetaStart,tZL=newtonStart$tZL,family=family,
                       inverse=TRUE,unit=unit,Chol=CholStart,tol=control$tol4)
@@ -133,12 +180,11 @@ if (missing(coefInit))
 
   # ... for tZL
   tZLStart <- pirlsStart$tZL
-  
  } else
  {
   if ((p!=length(coefInit[[1]]))|(q!=length(coefInit[[3]])))
     stop("The length of the starting values do not coincide with the model you want to fit.")
-   
+
   betaStart <- coefInit[[1]]
   XbStart <- as.vector(crossprod(data$X,betaStart))
 
@@ -157,8 +203,14 @@ if (missing(coefInit))
          LStart@x[index] <- rep(thetaStart[s],N)
          tZLInit <- crossprod(LStart,data$Z)
        }
+   }else if(covStruct == "Sym"){
+     thetaStart <- coefInit[[2]]
+     for(i in 1:nrpars){
+       LStart@x[ind.trick[[i]]] <- thetaStart[i]
+       tZLInit <- crossprod(LStart, data$Z)
+     }
    }
-  
+
   CholStart <- Cholesky(tcrossprod(tcrossprod(tZLInit,Wsqrt)),Imult=1,perm=FALSE)
   pirlsStart <- pirls(u=uStart,data=data,beta=betaStart,Wsqrt=Wsqrt,Xb=XbStart,theta=thetaStart,tZL=tZLInit,family=family,
                       inverse=TRUE,unit=unit,Chol=CholStart,tol=control$tol4)
@@ -205,7 +257,8 @@ fctIter <- fctStart
 XbIter <- XbStart
 tZLIter <- tZLStart
 pirlsIter <- pirlsStart
-if (covStruct=="Diagonal") LIter <- LStart
+if (covStruct=="Diagonal" | covStruct == "Sym") LIter <- LStart
+
 gradientIter <- numeric(p)
 unit <- .symDiagonal(n=q)
 
@@ -216,6 +269,7 @@ convCov <- sum(crossprod(thetaIter))
 while ( (control$maxIter > nIter) &  (convFct > control$tol1 | convPar > control$tol2 | convCov > control$tol3 | convLem > 10^(-3) | !doAll ) )
 {
 
+ ##cat(thetaIter, "\n")
  nIter <- nIter + 1
  if (control$verbose>=1) print(nIter)
  betaIterOld <- betaIter
@@ -318,7 +372,7 @@ while ( (control$maxIter > nIter) &  (convFct > control$tol1 | convPar > control
   }                                     
  
  # 2) b) Newton step
- 
+
  if (covStruct=="Identity")
   {
     newtonIter <- thetaOptExactpdIdent(theta=thetaIter,data=data,beta=betaIter,u=uIter,
@@ -329,9 +383,16 @@ while ( (control$maxIter > nIter) &  (convFct > control$tol1 | convPar > control
     newtonIter <- thetaOptExactpdDiag(theta=thetaIter,data=data,beta=betaIter,u=uIter,
                      lambda=lambda,weights=weights,penalized=penalized,Wsqrt=Wsqrt,Xb=XbIter,
                      L=LIter,stot=stot,control=control,ind=ind,N=N,family=family,Chol=CholStart)
-    thetaIter <- newtonIter$theta
+    ##thetaIter <- newtonIter$theta
+    LIter <- newtonIter$L
+  } else if(covStruct == "Sym"){ ## New
+    newtonIter <- thetaOptExactpdSym(theta=thetaIter,data=data,beta=betaIter,u=uIter,
+                                     lambda=lambda,weights=weights,penalized=penalized,Wsqrt=Wsqrt,Xb=XbIter,
+                                     L=LIter,stot=stot,control=control,ind=ind.trick,N=N,family=family,Chol=CholStart)
+    ##thetaIter <- newtonIter$theta
     LIter <- newtonIter$L
   }
+    
  pirlsIter <- pirls(u=uIter,data=data,beta=betaIter,Wsqrt=Wsqrt,Xb=XbIter,tZL=newtonIter$tZL,family=family,inverse=TRUE,
                     unit=unit,Chol=CholStart,tol=control$tol4)
  uIter <- pirlsIter$utilde
@@ -416,7 +477,9 @@ bic <- deviance + log(ntot)*npar
 
 if (covStruct=="Identity") {thetaIter <- rep(thetaIter,stot) ; thetaStart <- rep(thetaStart,stot)}
 
-list.out <- list(fixef=betaIter,coefficients=as.vector(betaIter),theta=thetaIter,ranef=ranef,u=as.vector(uIter),objective=fctIter,
+list.out <- list(fixef=betaIter,coefficients=as.vector(betaIter),theta=thetaIter,
+                 covStruct = covStruct, stot = stot,
+                 ranef=ranef,u=as.vector(uIter),objective=fctIter,
                  logLik=logLik,deviance=deviance,aic=aic,bic=bic,activeSet=activeSet,eta=eta,mu=mu,fitted=fitted,lambda=lambda,
                  weights=weights,data=data,family=family,ntot=ntot,p=p,N=N,unpenalized=unpenalized,ranInd=ranInd,exactStep=exactStep,exactDeriv=exactDeriv,
                  coefInit=list(beta=betaStart,theta=thetaStart,u=uStart),coefOut=list(beta=betaIter,theta=thetaIter,u=uIter),    

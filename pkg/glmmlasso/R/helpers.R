@@ -351,18 +351,39 @@ function(u,data,beta,tol,Wsqrt,theta=NULL,Xb=NULL,tZL=NULL,family,inverse=FALSE,
    
  }
 
+## NEW ##############################################################
+thetaFctExactpdSym <- function(thetal,data,Xb,beta,tZ,u,add,Wsqrt,L,index,N,
+                               family,tol4,Chol=NULL)
+  ## L:      Wurzel der Kovarianzmatrix in Vektorform
+  ## index:  zu aenderndes Element der Matrix/Vektors
+  ## thetal: Wert des Elements (1-dim)
+ {
+  ## Wurzel der Kovarianzmatrix ändern
+
+  L@x[index] <- thetal 
+
+  tZL <- crossprod(L,tZ) ## Multiplikation mit L, check Transponierung...??????
+  
+  pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,
+                       family=family,Chol=Chol,tol=tol4)
+  
+  log.det.L2 <- 2*determinant(pirlsOutput$Chol)$modulus
+
+  fct <- 2*pirlsOutput$Qu + log.det.L2 + add
+}
+###################################################################
+
 thetaFctExactpdDiag <-
 function(thetal,data,Xb,beta,tZ,u,add,Wsqrt,L,index,N,family,tol4,Chol=NULL)
  {
-  #print(thetal)
   L@x[index] <- rep(thetal,N)
   tZL <- crossprod(L,tZ)
+
   pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,family=family,Chol=Chol,tol=tol4)
   
   log.det.L2 <- 2*determinant(pirlsOutput$Chol)$modulus # 0.001
 
   fct <- 2*pirlsOutput$Qu + log.det.L2 + add
-      
 }
 
 thetaFctExactpdIdent <-
@@ -374,8 +395,35 @@ function(theta,data,Xb,beta,u,add,Wsqrt,family,tol4,Chol=NULL)
   log.det.L2 <- 2*determinant(pirlsOutput$Chol)$modulus
 
   fct <- 2*pirlsOutput$Qu + log.det.L2 + add
- 
 }
+
+
+thetaOptExactpdSym <-
+function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,control,ind,N,Chol=NULL)
+{
+
+  add <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
+  for (s in 1:length(theta)){
+      if (control$CovOpt=="nlminb")
+        {
+          optRes <- nlminb(theta[s],thetaFctExactpdSym,data=data,Xb=Xb,beta=beta,tZ=data$Z,u=u,add=add,
+                           Wsqrt=Wsqrt,L=L,index=ind[[s]],N=N,
+                           family=family,Chol=Chol,tol4=control$tol4)
+          if (abs(optRes$par)<control$thres)
+            {
+              theta[s] <- 0
+              L@x[ind[[s]]] <- 0
+            } else {
+              theta[s] <- optRes$par
+              L@x[ind[[s]]] <- optRes$par
+            }
+        }
+    }
+  tZL <- crossprod(L,data$Z)
+  
+  return(list(theta=theta,fct=optRes$objective,tZL=tZL,L=L))
+}
+
 
 thetaOptExactpdDiag <-
 function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,control,ind,N,Chol=NULL)
@@ -402,7 +450,6 @@ function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,contr
   tZL <- crossprod(L,data$Z)
   
   return(list(theta=theta,fct=optRes$objective,tZL=tZL,L=L))
-  
 }
 
 thetaOptExactpdIdent <-
@@ -424,4 +471,27 @@ function(theta,data,beta,u,lambda,weights,fctstart,penalized,Wsqrt,Xb,family,Cho
   return(list(theta=theta,fct=sum(optRes$objective),tZL=tZL))
   
 }
+
+fill.mat <- function(vec, dim)
+{
+  ## Purpose:
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Lukas Meier, Date:  9 Jul 2012, 10:05
+
+  m <- matrix(0, nrow = dim, ncol = dim)
+  diag(m) <- vec[1:dim]
+  count <- dim + 1
+  ## fill row-wise, needs to be done more elegant...
+  for(i in 1:(dim-1)){
+    for(j in (i+1):dim){
+      m[i,j] <- vec[count]
+      count <- count + 1
+    }
+  }
+  m
+}
+
+
 

@@ -9,7 +9,7 @@
 glmmlasso(y,...)
 
 \method{glmmlasso}{default}(y, group, X, Z = NULL, family = c("binomial", "poisson"),
- covStruct = c("Identity", "Diagonal"), lambda, weights = NULL,
+ covStruct = c("Identity", "Diagonal", "Sym"), lambda, weights = NULL,
  coefInit = NULL, exactStep = FALSE, exactDeriv = FALSE, random = NULL,
  unpenalized = 1:stot,ranInd = 1:stot,
  control = glmmlassoControl(family = family), ...)
