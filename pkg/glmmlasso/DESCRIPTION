@@ -1,11 +1,13 @@
-Package: glmmixedlasso
+Package: gelimimolasso
 Type: Package
 Title: Generalized Linear Mixed Models with Lasso
 Version: 0.1-2
 Date: 2012-10-03
 Author: Juerg Schelldorfer and Lukas Meier
 Maintainer: Lukas Meier <meier@stat.math.ethz.ch>
-Description: This package fits generalized linear mixed models for high-dimensional data (n<<p) using a Lasso-type approach for the fixed-effects parameter.
+Description: This package fits generalized linear mixed models for
+high-dimensional data (p>>n) using a Lasso-type approach for the
+fixed-effects parameter.
 Depends: methods, Matrix(>= 0.9996875-1), lme4, glmnet
 License: GPL
 LazyLoad: yes
