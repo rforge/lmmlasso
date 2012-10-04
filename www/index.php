@@ -43,11 +43,11 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> We would greatly appreciate any feedback about the lmmlasso and glmmlasso package. Please do not hesitate to contact the maintainer Lukas via meier@stat.math.ethz.ch. <p>
+<p> We would greatly appreciate any feedback about the package. Please do not hesitate to contact the maintainers via e-mail. <p>
  
 <p> You find all references <a href="http://stat.ethz.ch/people/schell"> on this website </a>. </p>
 
-<p> The <strong>project summary page</strong> you can find <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
+<p> The <strong>project summary page</strong> can be found <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
 
 </body>
 </html>
