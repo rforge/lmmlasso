@@ -1,13 +1,13 @@
 ObjFctPirls <-
 function(pirls,beta,weights,penalized,lambda){
-
-  2*pirls$Qu + sum(2*determinant(pirls$Chol)$modulus) + lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
-
+  2*pirls$Qu + sum(2*determinant(pirls$Chol)$modulus) +
+    lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
 }
 
 armijo <-
-function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,fct0,penalized,Wsqrt,convergence=convergence,tZL,pen,
-                     control,minArmijo,Xb0,family,Chol)
+function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,
+         fct0,penalized,Wsqrt,convergence=convergence,tZL,pen,
+         control,minArmijo,Xb0,family,Chol)
 {
    
   # Initialisierungen vor den Schritten
@@ -16,8 +16,8 @@ function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,
   u.cp <- pirls$cputilde
   beta.new <- beta
   lsabeta0 <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
-  increment <- direction*deriv$gradient + control$gamm*direction^2*deriv$hessian +
-    pen*lambda_k*(abs(beta_k+direction)-abs(beta_k))
+  increment <- direction*deriv$gradient + control$gamm*direction^2*
+    deriv$hessian + pen*lambda_k*(abs(beta_k+direction)-abs(beta_k))
   tXk <- data$X[k,]
     
   # Verändern der Schrittweite
@@ -29,7 +29,8 @@ function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,
       delta <- tXk*alpha*direction
       eta.new <- eta0 + delta
       lsabeta <- lsabeta0 - pen*lambda_k*(abs(beta_k) - abs(beta.newk))
-      fct1 <- armijoFct(y=data$y,tZL=tZL,u.cp=u.cp,Wsqrt=Wsqrt,eta=eta.new,lsabeta=lsabeta,family=family,Chol=Chol)
+      fct1 <- armijoFct(y=data$y,tZL=tZL,u.cp=u.cp,Wsqrt=Wsqrt,eta=eta.new,
+                        lsabeta=lsabeta,family=family,Chol=Chol)
 
       add <- alpha*control$rho*increment
       if (is.na(fct1)) cat("l=",l,"fct1",fct1,"fct0",fct0,"add",add,"\n")
@@ -52,13 +53,15 @@ function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,
     }
    #cat("l=",l,"\n")
 
-  return(list(beta=beta,fct=sum(fct),l=l,convergence=convergence,Xb=Xb,u=pirls$utilde))
+  return(list(beta=beta,fct=sum(fct),l=l,convergence=convergence,Xb=Xb,
+              u=pirls$utilde))
   
 }
 
 armijoExact <-
-function(data,tX,beta,theta,u,k,beta_k,direction,lambda_k,deriv,lambda,weights,fct0,penalized,Wsqrt,convergence=convergence,tZL,pen,
-                        control,minArmijo,Xb0,family,Chol)
+function(data,tX,beta,theta,u,k,beta_k,direction,lambda_k,deriv,lambda,weights,
+         fct0,penalized,Wsqrt,convergence=convergence,tZL,pen,
+         control,minArmijo,Xb0,family,Chol)
 {
 
 if (minArmijo!=control$maxArmijo)
@@ -67,8 +70,8 @@ if (minArmijo!=control$maxArmijo)
   # Initialisierungen vor den Schritten
   beta.new <- beta
   lsabeta <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
-  increment <- direction*deriv$gradient + control$gamm*direction^2*deriv$hessian +
-    pen*lambda_k*(abs(beta_k+direction)-abs(beta_k))
+  increment <- direction*deriv$gradient + control$gamm*direction^2*
+    deriv$hessian + pen*lambda_k*(abs(beta_k+direction)-abs(beta_k))
   #cat("increment:",increment,"\n")
   tXk <- data$X[k,]
   u.init <- u
@@ -85,7 +88,9 @@ if (minArmijo!=control$maxArmijo)
       Xb.new <- Xb0 + delta
       beta.new[k] <- beta.newk
       # new u
-      pirls.new <- pirls(u=u.init,data=data,beta=beta.new,Wsqrt=Wsqrt,Xb=Xb.new,tZL=tZL,family=family,Chol=Chol,tol=control$tol4)
+      pirls.new <- pirls(u=u.init,data=data,beta=beta.new,Wsqrt=Wsqrt,
+                         Xb=Xb.new,tZL=tZL,family=family,Chol=Chol,
+                         tol=control$tol4)
       u.new <- u.init <- pirls.new$utilde
       u.new.cp <- pirls.new$cputilde
       # new eta
@@ -111,7 +116,8 @@ if (minArmijo!=control$maxArmijo)
         }
     }
   #cat("l=",l,"\n")
- } else { convergence <- convergence+2 ; Xb <- Xb0 ; fct <- fct0 ; l <- minArmijo}
+ } else { convergence <- convergence+2 ; Xb <- Xb0 ; fct <- fct0 ;
+          l <- minArmijo}
   
   return(list(beta=beta,fct=sum(fct),l=l,convergence=convergence,Xb=Xb,u=u))
   
@@ -179,7 +185,8 @@ function(Xk,Xk2,y,mu,tZL,lower,upper,W1k,unit,Chol,family,CInv=NULL,diagIndex)
  }
 
 derivBetaExact <-
-function(Xk,Xk2,y,mu,tZL,lower,upper,W1k,W2k,Wu,unit,Chol,family,CInv=NULL,diagIndex,u,diag2Index)
+function(Xk,Xk2,y,mu,tZL,lower,upper,W1k,W2k,Wu,unit,Chol,family,CInv=NULL,
+         diagIndex,u,diag2Index)
  {
   if (family=="binomial")
     {
@@ -209,7 +216,8 @@ function(Xk,Xk2,y,mu,tZL,lower,upper,W1k,W2k,Wu,unit,Chol,family,CInv=NULL,diagI
   M2 <- tcrossprod(tcrossprod(tZL,W1k),tZL)
   M3 <- CInv%*%M2
 
-  gradient <-  -2*sum(crossprod(XktZLgradub,(y-mu))) + sum(M3@x[diagIndex]) + 2*sum(crossprod(u,gradub))
+  gradient <-  -2*sum(crossprod(XktZLgradub,(y-mu))) +
+    sum(M3@x[diagIndex]) + 2*sum(crossprod(u,gradub))
   
   hessian <- min(max(2*crossprod(Xk2,mu1),lower),upper)
   
@@ -221,7 +229,8 @@ desDir <-
 function(deriv,lambda_k,beta_k,penalized_k) {
   gradient <- deriv$gradient
   hessian <- deriv$hessian
-  if (penalized_k) desdir <- median(c((lambda_k-gradient)/hessian,-beta_k,(-lambda_k-gradient)/hessian))
+  if (penalized_k) desdir <- median(c((lambda_k-gradient)/hessian,-beta_k,
+                                      (-lambda_k-gradient)/hessian))
   else desdir <- -gradient/hessian
 
   return(desdir)
@@ -232,7 +241,8 @@ function(y,mu,u,Wsqrt,tZL,fct,family,lambda,beta,weights,penalized)
 {
   if (family=="binomial")
    {
-     deviance <- fct - lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
+     deviance <- fct - lambda*sum(abs(beta[penalized,drop=FALSE])/
+                                  weights[penalized])
    }
   
   if (family=="poisson")
@@ -280,7 +290,8 @@ function(y,eta,family)
  }
 
 pirls <-
-function(u,data,beta,tol,Wsqrt,theta=NULL,Xb=NULL,tZL=NULL,family,inverse=FALSE,unit=NULL,CInv=NULL,Chol)
+function(u,data,beta,tol,Wsqrt,theta=NULL,Xb=NULL,tZL=NULL,family,inverse=FALSE,
+         unit=NULL,CInv=NULL,Chol)
  {
    if (missing(Xb)) Xb <- t(data$X)%*%beta 
    if (missing(tZL)) tZL <- theta*data$Z
@@ -326,14 +337,16 @@ function(u,data,beta,tol,Wsqrt,theta=NULL,Xb=NULL,tZL=NULL,family,inverse=FALSE,
 
       eta.new <- Xb + cptZLu
  
-      if (sum(sqrt(abs(crossprod(eta.old-eta.new)/crossprod(eta.old))))<tol|(counter>50)) break
+      if (sum(sqrt(abs(crossprod(eta.old-eta.new)/crossprod(eta.old))))<
+          tol|(counter>50)) break
     }
 
    if (counter>50) u <- uStart
 
    cpu <- sum(crossprod(u))
    
-   Qu <- glmPart(y=data$y,eta=eta.new,family=family) + 0.5*cpu #Qu <- -sum(y*eta.new-log(1+exp(eta.new))) + 0.5*cpu
+   Qu <- glmPart(y=data$y,eta=eta.new,family=family) + 0.5*cpu
+   ##Qu <- -sum(y*eta.new-log(1+exp(eta.new))) + 0.5*cpu
 
    if (family=="binomial")
     {
@@ -347,7 +360,8 @@ function(u,data,beta,tol,Wsqrt,theta=NULL,Xb=NULL,tZL=NULL,family,inverse=FALSE,
 
    #cat("counter:",counter,"\n")
 
-   return(list(utilde=u,Xb=Xb,tZL=tZL,Qu=Qu,Chol=C,mu=mu,eta=eta.new,Wsqrt=Wsqrt,cputilde=cpu,CInv=CInv))
+   return(list(utilde=u,Xb=Xb,tZL=tZL,Qu=Qu,Chol=C,mu=mu,eta=eta.new,
+               Wsqrt=Wsqrt,cputilde=cpu,CInv=CInv))
    
  }
 
@@ -379,7 +393,8 @@ function(thetal,data,Xb,beta,tZ,u,add,Wsqrt,L,index,N,family,tol4,Chol=NULL)
   L@x[index] <- rep(thetal,N)
   tZL <- crossprod(L,tZ)
 
-  pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,family=family,Chol=Chol,tol=tol4)
+  pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,
+                       family=family,Chol=Chol,tol=tol4)
   
   log.det.L2 <- 2*determinant(pirlsOutput$Chol)$modulus # 0.001
 
@@ -390,7 +405,8 @@ thetaFctExactpdIdent <-
 function(theta,data,Xb,beta,u,add,Wsqrt,family,tol4,Chol=NULL)
  { 
   tZL <- theta*data$Z
-  pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,family=family,Chol=Chol,tol=tol4)
+  pirlsOutput <- pirls(u=u,data=data,beta=beta,Wsqrt=Wsqrt,Xb=Xb,tZL=tZL,
+                       family=family,Chol=Chol,tol=tol4)
 
   log.det.L2 <- 2*determinant(pirlsOutput$Chol)$modulus
 
@@ -399,14 +415,16 @@ function(theta,data,Xb,beta,u,add,Wsqrt,family,tol4,Chol=NULL)
 
 
 thetaOptExactpdSym <-
-function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,control,ind,N,Chol=NULL)
+function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,
+         control,ind,N,Chol=NULL)
 {
 
   add <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
   for (s in 1:length(theta)){
       if (control$CovOpt=="nlminb")
         {
-          optRes <- nlminb(theta[s],thetaFctExactpdSym,data=data,Xb=Xb,beta=beta,tZ=data$Z,u=u,add=add,
+          optRes <- nlminb(theta[s],thetaFctExactpdSym,data=data,Xb=Xb,
+                           beta=beta,tZ=data$Z,u=u,add=add,
                            Wsqrt=Wsqrt,L=L,index=ind[[s]],N=N,
                            family=family,Chol=Chol,tol4=control$tol4)
           if (abs(optRes$par)<control$thres)
@@ -426,7 +444,8 @@ function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,contr
 
 
 thetaOptExactpdDiag <-
-function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,control,ind,N,Chol=NULL)
+function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,
+         control,ind,N,Chol=NULL)
 {
 
   add <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
@@ -436,8 +455,10 @@ function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,contr
      index <- which(ind==s)
      if (control$CovOpt=="nlminb")
        {
-         optRes <- nlminb(theta[s],thetaFctExactpdDiag,data=data,Xb=Xb,beta=beta,tZ=data$Z,u=u,add=add,
-                           Wsqrt=Wsqrt,L=L,index=index,N=N,family=family,Chol=Chol,tol4=control$tol4,lower=0)
+         optRes <- nlminb(theta[s],thetaFctExactpdDiag,data=data,Xb=Xb,
+                          beta=beta,tZ=data$Z,u=u,add=add,
+                           Wsqrt=Wsqrt,L=L,index=index,N=N,family=family,
+                          Chol=Chol,tol4=control$tol4,lower=0)
          if (abs(optRes$par)<control$thres)
          {
            theta[s] <- 0
@@ -453,14 +474,17 @@ function(theta,data,beta,u,lambda,weights,penalized,Wsqrt,Xb,family,L,stot,contr
 }
 
 thetaOptExactpdIdent <-
-function(theta,data,beta,u,lambda,weights,fctstart,penalized,Wsqrt,Xb,family,Chol=NULL,control)
+function(theta,data,beta,u,lambda,weights,fctstart,penalized,Wsqrt,Xb,
+         family,Chol=NULL,control)
 {
 
   add <- lambda*sum(abs(beta[penalized,drop=FALSE])/weights[penalized])
 
   if (control$CovOpt=="nlminb")
    {
-     optRes <- nlminb(theta,thetaFctExactpdIdent,data=data,Xb=Xb,beta=beta,u=u,add=add,Wsqrt=Wsqrt,family=family,Chol=Chol,tol4=control$tol4,lower=0)
+     optRes <- nlminb(theta,thetaFctExactpdIdent,data=data,Xb=Xb,beta=beta,
+                      u=u,add=add,Wsqrt=Wsqrt,family=family,Chol=Chol,
+                      tol4=control$tol4,lower=0)
      theta <- optRes$par
    }
 
