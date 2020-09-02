@@ -1,4 +1,5 @@
 import(Matrix)
+import(glmnet, lme4)
 
 export(glmmlasso)
 
@@ -8,3 +9,8 @@ S3method(glmmlasso, default)
 S3method(plot, glmmlasso)
 S3method(print, glmmlasso)
 S3method(summary, glmmlasso)
+
+importFrom("methods", "as", "is")
+importFrom("graphics", "abline", "hist", "par", "rug")
+importFrom("stats", "as.formula", "ftable", "median", "nlminb",
+           "predict", "qqline", "qqnorm")

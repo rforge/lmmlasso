@@ -16,13 +16,14 @@ if (missing(random)&missing(Z))
    cat("A random-intercept model is fitted.","\n")
  }
 
-if (!missing(random))
- {
+if (!missing(random)){
   if (!is.character(random)) stop("random must be a character")
-  Z <- t(glmer(as.formula(paste("y~1+",random)),
-               data=data.frame(X,y=y,group=group),family=family,
-               nAGQ=1,doFit=FALSE)@Zt)
- }
+  ## hack because doFit not available anymore 
+  Z <- t(do.call(rbind, getME(lmer(as.formula(paste("y~1+",random)),
+                                   data=data.frame(X,y=y,group=group),
+                                   control = lmerControl(optimizer = NULL)),
+                              "Ztlist"))) 
+}
 
 # transpose and save the data in an appropriate way
 data <- list() ; data$y <- y ; data$group <- group ; data$X <- t(X);

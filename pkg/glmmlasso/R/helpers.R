@@ -23,10 +23,10 @@ function(data,beta,theta,pirls,k,beta_k,lambda_k,direction,deriv,lambda,weights,
   # Verändern der Schrittweite
   for (l in minArmijo:control$maxArmijo)
     {
-      alpha <- control$a_init*control$delta^l
+      alpha <- c(control$a_init*control$delta^l)
       beta.newk <- beta_k + alpha*direction
  
-      delta <- tXk*alpha*direction
+      delta <- c(tXk)*c(alpha)*c(direction) ## hack with c()
       eta.new <- eta0 + delta
       lsabeta <- lsabeta0 - pen*lambda_k*(abs(beta_k) - abs(beta.newk))
       fct1 <- armijoFct(y=data$y,tZL=tZL,u.cp=u.cp,Wsqrt=Wsqrt,eta=eta.new,
@@ -84,7 +84,7 @@ if (minArmijo!=control$maxArmijo)
       alpha <- control$a_init*control$delta^l
       beta.newk <- beta_k + alpha*direction
       # new Xbeta
-      delta <- tXk*alpha*direction
+      delta <- c(tXk)*c(alpha)*c(direction) ## hack with c()
       Xb.new <- Xb0 + delta
       beta.new[k] <- beta.newk
       # new u

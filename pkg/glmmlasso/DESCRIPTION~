@@ -2,7 +2,7 @@ Package: glmmixedlasso
 Type: Package
 Title: Generalized Linear Mixed Models with Lasso
 Version: 0.1-21
-Date: 2020-09-02
+Date: 2012-10-15
 Author: Juerg Schelldorfer
 Maintainer: Lukas Meier <meier@stat.math.ethz.ch>
 Description: This package fits generalized linear mixed models for 

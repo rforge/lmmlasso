@@ -167,8 +167,10 @@ group <- factor(rep(1:N,times=ni)) ## grouping variable
 beta <- c(0,1,-1,1,-1,0,0) # fixed-effects coefficients
 
 X <- cbind(1,matrix(rnorm(ntot*p),nrow=ntot)) ## fixed-effects design matrix
-Z <- t(glmer(rbinom(ntot,1,runif(ntot,0.3,1))~1+(1|group)+(0+X2|group),
-             data=data.frame(X),family="binomial")@Zt) 
+Z <- t(do.call(rbind,
+       getME(lmer(rbinom(ntot,1,runif(ntot,0.3,1))~1+(1|group)+(0+X2|group),
+             data=data.frame(X), control = lmerControl(optimizer = NULL)),
+       "Ztlist")))
 ## random-eff. design matrix
 
 bi <- c(rnorm(N,0,2),rnorm(N,0,1))
